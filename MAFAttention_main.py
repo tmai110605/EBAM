@@ -59,7 +59,7 @@ def get_args():
     """
     parser = argparse.ArgumentParser(description='AVG3DNet training script for CIFAR and fine-grained datasets.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     #parser.add_argument('-r', '--data-root', type=str, required=True, help='Dataset root path.')
-    parser.add_argument('-r', '--data-root', type=str, default='data', help='Dataset root path.')
+    parser.add_argument('-r', '--data-root', type=str, default='model', help='Dataset root path.')
     #parser.add_argument('-d', '--dataset', choices=['cifar10', 'cifar100', 'dogs'], required=True, help='Dataset name.')
     parser.add_argument('-d', '--dataset', type=str, choices=['cifar10', 'cifar100', 'dogs'], default='dogs', help='Dataset name.')
     parser.add_argument('--download', action='store_true', help='Download the specified dataset before running the training.')
