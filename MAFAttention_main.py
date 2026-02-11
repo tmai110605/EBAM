@@ -215,7 +215,7 @@ def main():
         if not os.path.exists(pathout):
             os.makedirs(pathout)
         # get model
-        model = build_mobilenet_v2(120, "lagre", width_multiplier=1.0, cifar=False,use_lightweight_head=False)
+        model = build_mobilenet_v3(120, "lagre", width_multiplier=1.0, cifar=False,use_lightweight_head=False)
         model = model.to(device)
 
         print(model)
