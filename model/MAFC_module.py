@@ -32,9 +32,9 @@ class SpatialGate_new1(nn.Module):
         self.convdw = nn.Conv2d(
                 in_channels=cout,
                 out_channels=cout,
-                kernel_size=3,
+                kernel_size=7,
                 stride=1,
-                padding=1,
+                padding=3,
                 groups=cout,
                 bias=False)
         self.gate_s.add_module('gate_s_conv_depthwise',self.convdw)
