@@ -26,21 +26,27 @@ class ChannelGate(nn.Module):
 class SpatialGate_new1(nn.Module):
     def __init__(self, gate_channel, reduction_ratio=8):
         super(SpatialGate_new1, self).__init__()
-        cout=gate_channel//reduction_ratio
+        cout = gate_channel // reduction_ratio
         self.gate_s = nn.Sequential()
+        # Reduce C → C/r
         self.gate_s.add_module('gate_s_conv_reduce0', nn.Conv2d(gate_channel, cout, kernel_size=1))
-        self.convdw = nn.Conv2d(
+        # Depthwise conv
+        self.gate_s.add_module(
+            'gate_s_conv_depthwise',
+            nn.Conv2d(
                 in_channels=cout,
                 out_channels=cout,
-                kernel_size=7,
+                kernel_size=3,
                 stride=1,
-                padding=3,
+                padding=1,
                 groups=cout,
-                bias=False)
-        self.gate_s.add_module('gate_s_conv_depthwise',self.convdw)
-        self.gate_s.add_module('gate_s_bn0',nn.BatchNorm2d(cout))
-        self.gate_s.add_module('gate_s_relu0',nn.ReLU())
-        self.gate_s.add_module('gate_s_conv_reduce', nn.Conv2d(cout, 1, kernel_size=1))
+                bias=False
+            )
+        )
+        self.gate_s.add_module('gate_s_bn0', nn.BatchNorm2d(cout))
+        self.gate_s.add_module('gate_s_relu0', nn.ReLU())
+        self.gate_s.add_module('gate_s_conv_to1', nn.Conv2d(cout, 1, kernel_size=1))
+        self.gate_s.add_module( 'gate_s_conv_expand', nn.Conv2d(1, gate_channel, kernel_size=1))
 
     def forward(self, in_tensor):
         x_gate_s = self.gate_s( in_tensor )
