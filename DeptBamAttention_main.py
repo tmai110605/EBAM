@@ -19,7 +19,7 @@ import torch.utils.data
 
 import torchvision.transforms as transforms
 from torchvision import datasets
-from model.mobilenet_MAFC import *
+from model.mobilenet_DeptBam import *
 from model.datasets import *
 import torch
 import torch.nn
@@ -59,15 +59,18 @@ def get_args():
     """
     parser = argparse.ArgumentParser(description='AVG3DNet training script for CIFAR and fine-grained datasets.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     #parser.add_argument('-r', '--data-root', type=str, required=True, help='Dataset root path.')
-    parser.add_argument('-r', '--data-root', type=str, default='data', help='Dataset root path.')
+    parser.add_argument('-r', '--data-root', type=str, default='.../data', help='Dataset root path.')
     #parser.add_argument('-d', '--dataset', choices=['cifar10', 'cifar100', 'dogs'], required=True, help='Dataset name.')
     parser.add_argument('-d', '--dataset', type=str, choices=['cifar10', 'cifar100', 'dogs'], default='dogs', help='Dataset name.')
     parser.add_argument('--download', action='store_true', help='Download the specified dataset before running the training.')
     #parser.add_argument('-a', '--architecture', type=str, required=True, help='Model architecture name.')
     parser.add_argument('-a', '--architecture', type=str, default='mobilenetv1_w1', help='Model architecture name.')
+    parser.add_argument('--mobilenet', choices=['v1', 'v2', 'v3'], default='v2', help='Select MobileNet version.')
+    parser.add_argument('--mobilenet-v3', choices=['small', 'large'], default='large', help='Select MobileNetV3 variant when --mobilenet v3 is used.')
+    parser.add_argument('--mobilenet-v3-lightweight-head', action='store_true', help='Use lightweight head for MobileNetV3 when --mobilenet v3 is used.')
     parser.add_argument('-g', '--gpu-id', default=1, type=int, help='ID of the GPU to use. Set to -1 to use CPU.')
     parser.add_argument('-j', '--workers', default=4, type=int, help='Number of data loading workers.')
-    parser.add_argument('-b', '--batch-size', default=64, type=int, help='Batch size.')
+    parser.add_argument('-b', '--batch-size', default=128, type=int, help='Batch size.')
     parser.add_argument('-e', '--epochs', default=200, type=int, help='Number of total epochs to run.')
     parser.add_argument('-l', '--learning-rate', default=0.1, type=float, help='Initial learning rate.')
     parser.add_argument('-s', '--schedule', nargs='+', default=[100, 150, 180], type=int, help='Learning rate schedule (epochs after which the learning rate should be dropped).')
@@ -188,8 +191,8 @@ def run_epoch(train, data_loader, model, criterion, optimizer, n_epoch, args, de
             loss.backward()
             optimizer.step()
 
-        #if (n_batch % 10) == 0:
-            #print('[{}]  epoch {}/{},  batch {}/{},  loss_{}={:.5f},  acc_{}={:.2f}%'.format('train' if train else ' val ', n_epoch + 1, args.epochs, n_batch + 1, batch_count, "train" if train else "val", loss_item, "train" if train else "val", 100.0 * acc))
+        if (n_batch % 10) == 0:
+            print('[{}]  epoch {}/{},  batch {}/{},  loss_{}={:.5f},  acc_{}={:.2f}%'.format('train' if train else ' val ', n_epoch + 1, args.epochs, n_batch + 1, batch_count, "train" if train else "val", loss_item, "train" if train else "val", 100.0 * acc))
 
     return (sum(losses) / len(losses), sum(accs) / len(accs))
 
@@ -207,62 +210,71 @@ def main():
     # print model with parameter and FLOPs counts
     torch.autograd.set_detect_anomaly(True)
 
-    arr_squeeze = [['avg']]
-    for squeeze in arr_squeeze:
-        strmode = 'CIFAR100_AVG3DNet_temtest_' + squeeze[0]
-        pathout = './checkpoints/' + strmode
-        filenameLOG = pathout + '/' + strmode + '.txt'
-        if not os.path.exists(pathout):
-            os.makedirs(pathout)
-        # get model
+    strmode = args.dataset + '_DeptBAM_' + args.mobilenet
+    if args.mobilenet == 'v3':
+        strmode += '_' + args.mobilenet_v3
+        if args.mobilenet_v3_lightweight_head:
+            strmode += '_lite'
+    pathout = './checkpoints/' + strmode
+    filenameLOG = pathout + '/' + strmode + '.txt'
+    if not os.path.exists(pathout):
+        os.makedirs(pathout)
+    # get model
+    if args.mobilenet == 'v1':
+        model = build_mobilenet_v1(120, width_multiplier=1.0, cifar=False)
+    elif args.mobilenet == 'v2':
         model = build_mobilenet_v2(120, width_multiplier=1.0, cifar=False)
-        model = model.to(device)
+    elif args.mobilenet == 'v3':
+        model = build_mobilenet_v3(120, version=args.mobilenet_v3, width_multiplier=1.0, cifar=False,use_lightweight_head=args.mobilenet_v3_lightweight_head)
+    else:
+        raise ValueError('Unsupported MobileNet version: {}'.format(args.mobilenet))
+    model = model.to(device)
 
-        print(model)
+    print(model)
 
-        print('Number of model parameters: {}'.format(
-        sum([p.data.nelement() for p in model.parameters()])))
+    print('Number of model parameters: {}'.format(
+    sum([p.data.nelement() for p in model.parameters()])))
 
-        # define loss function and optimizer
-        train_loss_fn = LabelSmoothingCrossEntropy(smoothing=0.1).to(device)
-        #validate_loss_fn = nn.CrossEntropyLoss().to(device)
-        criterion = torch.nn.CrossEntropyLoss().to(device)
-        optimizer = torch.optim.SGD(params=model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=args.schedule, gamma=0.1)
+    # define loss function and optimizer
+    train_loss_fn = LabelSmoothingCrossEntropy(smoothing=0.1).to(device)
+    #validate_loss_fn = nn.CrossEntropyLoss().to(device)
+    criterion = torch.nn.CrossEntropyLoss().to(device)
+    optimizer = torch.optim.SGD(params=model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=args.schedule, gamma=0.1)
 
-        # get train and val data loaders
-        train_loader = get_data_loader(args=args, train=True)
-        val_loader = get_data_loader(args=args, train=False)
+    # get train and val data loaders
+    train_loader = get_data_loader(args=args, train=True)
+    val_loader = get_data_loader(args=args, train=False)
 
-        # for each epoch...
-        acc_val_max = None
-        acc_val_argmax = None
-        for n_epoch in range(args.epochs):
-            current_learning_rate = optimizer.param_groups[0]['lr']
-            print('Starting epoch {}/{},  learning_rate={}'.format(n_epoch + 1, args.epochs, current_learning_rate))
+    # for each epoch...
+    acc_val_max = None
+    acc_val_argmax = None
+    for n_epoch in range(args.epochs):
+        current_learning_rate = optimizer.param_groups[0]['lr']
+        print('Starting epoch {}/{},  learning_rate={}'.format(n_epoch + 1, args.epochs, current_learning_rate))
 
-            # train
-            #(loss_train, acc_train) = run_epoch(train=True, data_loader=train_loader, model=model, criterion=criterion, optimizer=optimizer, n_epoch=n_epoch, args=args, device=device)
-            (loss_train, acc_train) = run_epoch(train=True, data_loader=train_loader, model=model, criterion=train_loss_fn, optimizer=optimizer, n_epoch=n_epoch, args=args, device=device)
-            # validate
-            (loss_val, acc_val) = run_epoch(train=False, data_loader=val_loader, model=model, criterion=criterion, optimizer=None, n_epoch=n_epoch, args=args, device=device)
-            if (acc_val_max is None) or (acc_val > acc_val_max):
-                acc_val_max = acc_val
-                acc_val_argmax = n_epoch
-                torch.save({"model_state_dict": model.state_dict()}, pathout + '/' + 'checkpoint_epoch{:>04d}_{:.2f}.pth'.format(n_epoch + 1,100.0 * acc_val_max))
+        # train
+        #(loss_train, acc_train) = run_epoch(train=True, data_loader=train_loader, model=model, criterion=criterion, optimizer=optimizer, n_epoch=n_epoch, args=args, device=device)
+        (loss_train, acc_train) = run_epoch(train=True, data_loader=train_loader, model=model, criterion=train_loss_fn, optimizer=optimizer, n_epoch=n_epoch, args=args, device=device)
+        # validate
+        (loss_val, acc_val) = run_epoch(train=False, data_loader=val_loader, model=model, criterion=criterion, optimizer=None, n_epoch=n_epoch, args=args, device=device)
+        if (acc_val_max is None) or (acc_val > acc_val_max):
+            acc_val_max = acc_val
+            acc_val_argmax = n_epoch
+            torch.save({"model_state_dict": model.state_dict()}, pathout + '/' + 'checkpoint_epoch{:>04d}_{:.2f}.pth'.format(n_epoch + 1,100.0 * acc_val_max))
 
-            # adjust learning rate
-            scheduler.step()
+        # adjust learning rate
+        scheduler.step()
 
-            # save the model weights
-            #torch.save({"model_state_dict": model.state_dict()}, 'checkpoint_epoch{:>04d}.pth'.format(n_epoch + 1))
+        # save the model weights
+        #torch.save({"model_state_dict": model.state_dict()}, 'checkpoint_epoch{:>04d}.pth'.format(n_epoch + 1))
 
-            # print epoch summary
-            line = 'Epoch {}/{} summary:  loss_train={:.5f},  acc_train={:.2f}%,  loss_val={:.2f},  acc_val={:.2f}% (best: {:.2f}% @ epoch {})'.format(n_epoch + 1, args.epochs, loss_train, 100.0 * acc_train, loss_val, 100.0 * acc_val, 100.0 * acc_val_max, acc_val_argmax + 1)
-            print('=' * len(line))
-            print(line)
-            print('=' * len(line))
-            wA.writeLogAcc(filenameLOG,line)
+        # print epoch summary
+        line = 'Epoch {}/{} summary:  loss_train={:.5f},  acc_train={:.2f}%,  loss_val={:.2f},  acc_val={:.2f}% (best: {:.2f}% @ epoch {})'.format(n_epoch + 1, args.epochs, loss_train, 100.0 * acc_train, loss_val, 100.0 * acc_val, 100.0 * acc_val_max, acc_val_argmax + 1)
+        print('=' * len(line))
+        print(line)
+        print('=' * len(line))
+        wA.writeLogAcc(filenameLOG,line)
 
 if __name__ == '__main__':
     try:
