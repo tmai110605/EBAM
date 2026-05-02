@@ -23,39 +23,33 @@ class ChannelGate(nn.Module):
         avg_pool = F.avg_pool2d( in_tensor, in_tensor.size(2), stride=in_tensor.size(2) )
         return self.gate_c( avg_pool ).unsqueeze(2).unsqueeze(3).expand_as(in_tensor)
 
-class SpatialGate_new1(nn.Module):
+
+
+class DeptSaptial(nn.Module):
     def __init__(self, gate_channel, reduction_ratio=8):
-        super(SpatialGate_new1, self).__init__()
-        cout = gate_channel // reduction_ratio
+        super().__init__()
+        mid = gate_channel // reduction_ratio
+        self.convdw = nn.Conv2d(mid, mid, kernel_size=7, stride=1, padding=3, groups=mid, bias=False)
+        # Optional: use this to change the kernel size of the depthwise convolution
+        # self.convdw = nn.Conv2d(mid, mid, kernel_size=3, stride=1, padding=1, groups=mid, bias=False)
+        
         self.gate_s = nn.Sequential()
-        # Reduce C → C/r
-        self.gate_s.add_module('gate_s_conv_reduce0', nn.Conv2d(gate_channel, cout, kernel_size=1))
-        # Depthwise conv
-        self.gate_s.add_module(
-            'gate_s_conv_depthwise',
-            nn.Conv2d(
-                in_channels=cout,
-                out_channels=cout,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                groups=cout,
-                bias=False
-            )
-        )
-        self.gate_s.add_module('gate_s_bn0', nn.BatchNorm2d(cout))
-        self.gate_s.add_module('gate_s_relu0', nn.ReLU())
-        self.gate_s.add_module('gate_s_conv_to1', nn.Conv2d(cout, 1, kernel_size=1))
-        self.gate_s.add_module( 'gate_s_conv_expand', nn.Conv2d(1, gate_channel, kernel_size=1))
+        self.gate_s.add_module( "gate_s_conv_reduce0", nn.Conv2d(gate_channel, mid, kernel_size=1))
+        self.gate_s.add_module( "gate_s_conv_depthwise", self.convdw)
+        self.gate_s.add_module( "gate_s_bn0", nn.BatchNorm2d(mid))
+        self.gate_s.add_module( "gate_s_relu0", nn.ReLU(inplace=True))
+        self.gate_s.add_module( "gate_s_conv_reduce",nn.Conv2d(mid, 1, kernel_size=1))
 
     def forward(self, in_tensor):
-        x_gate_s = self.gate_s( in_tensor )
-        return x_gate_s
-class BAM(nn.Module):
+        return self.gate_s(in_tensor)
+
+class DeptBAM(nn.Module):
     def __init__(self, gate_channel):
-        super(BAM, self).__init__()
+        super().__init__()
         self.channel_att = ChannelGate(gate_channel)
-        self.spatial_att = SpatialGate_new1(gate_channel)
-    def forward(self,in_tensor):
-        att = 1 + torch.sigmoid( self.channel_att(in_tensor) * self.spatial_att(in_tensor) )
-        return att * in_tensor
+        self.spatial_att = DeptSaptial(gate_channel)
+
+    def forward(self, x):
+        logit = self.channel_att(x) * self.spatial_att(x)   
+        att = 1 + torch.sigmoid(logit)
+        return att * x
