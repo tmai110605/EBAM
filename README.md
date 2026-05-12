@@ -2,7 +2,7 @@
 
 Abstract - Bottleneck Attention Module (BAM) is one of the most popular attention mechanisms for concentrative learning in CNN-based networks. However, addressing BAM for MobileNets has obtained at modest performance levels since it might be the less discriminative patterns caused by their shallow backbone of perceptive layers. To mitigate this issue, a significant enhancement of BAM is proposed (named EBAM) by simply taking into account lightweight depthwise-based spatial patterns for the branch of spatial-based attention. Concretely, two standard dilated convolutions in the original BAM will be merely replaced by one depthwise function. This simple replacement would conduct two benefits to improve MobileNets as follows. i) Addressing the depthwise-based spatial attentive features ensures a unity of lightweight patterns through MobileNets' backbone. ii) Thanks to the depthwise operation, EBAM would take into account less learnable parameters than its original version. Experimental results for image recognition on various benchmark datasets have verified the prominent efficiency of our proposal. Particularly, the performance of MobileNetV3 has been boosted by up to ~5% on Stanford Dogs.
 
-# DeptBam MobileNet Training
+# EBam MobileNet Training
 
 This project trains MobileNet variants (V1/V2/V3) with DeptBAM attention.
 
