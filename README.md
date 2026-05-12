@@ -1,3 +1,7 @@
+# Enhanced Bottleneck Attention Module Based on Lightweight Spatial Patterns for MobileNets
+
+Abstract - Bottleneck Attention Module (BAM) is one of the most popular attention mechanisms for concentrative learning in CNN-based networks. However, addressing BAM for MobileNets has obtained at modest performance levels since it might be the less discriminative patterns caused by their shallow backbone of perceptive layers. To mitigate this issue, a significant enhancement of BAM is proposed (named EBAM) by simply taking into account lightweight depthwise-based spatial patterns for the branch of spatial-based attention. Concretely, two standard dilated convolutions in the original BAM will be merely replaced by one depthwise function. This simple replacement would conduct two benefits to improve MobileNets as follows. i) Addressing the depthwise-based spatial attentive features ensures a unity of lightweight patterns through MobileNets' backbone. ii) Thanks to the depthwise operation, EBAM would take into account less learnable parameters than its original version. Experimental results for image recognition on various benchmark datasets have verified the prominent efficiency of our proposal. Particularly, the performance of MobileNetV3 has been boosted by up to ~5% on Stanford Dogs.
+
 # DeptBam MobileNet Training
 
 This project trains MobileNet variants (V1/V2/V3) with DeptBAM attention.
@@ -79,3 +83,29 @@ Checkpoints and logs are saved under:
 ```
 
 `<run-name>` is generated from the selected MobileNet version and options.
+
+## Project Structure
+
+```
+EBAM/
+├── EBamAttention_main.py          # Main training script - entry point
+├── writeLogAcc.py                     # Logging utility for training progress and results
+├── README.md                          # This file
+├── model/
+│   ├── common.py                      # Common utilities and helper functions
+│   ├── datasets.py                    # Dataset loading and preprocessing
+│   ├── EBam.py                     # EBAM implementation (Enhanced Bottleneck Attention Module)
+│   └── mobilenet_EBam.py           # MobileNet architectures (V1/V2/V3) integrated with EBAM
+└── checkpoints/                       # Output directory for trained models and logs
+    └── <run-name>/
+        ├── checkpoint_epoch*.pth      # Saved model weights
+        └── <run-name>.txt             # Training log with timestamps
+```
+
+### Key Files
+
+- **EBamAttention_main.py**: Main training script. Handles argument parsing, model building, training loop, and checkpoint saving.
+- **model/EBam.py**: Core EBAM (Enhanced Bottleneck Attention Module) implementation with depthwise spatial attention patterns.
+- **model/mobilenet_EBam.py**: MobileNet V1, V2, and V3 architectures with integrated EBAM.
+- **model/datasets.py**: Data loading and augmentation for CIFAR-10, CIFAR-100, and Stanford Dogs.
+- **writeLogAcc.py**: Utility for writing timestamped logs to checkpoint directory.
