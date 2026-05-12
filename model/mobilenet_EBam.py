@@ -378,7 +378,7 @@ def build_mobilenet_v2(num_classes, width_multiplier=1.0, cifar=False,pool_types
                        in_size=in_size,pool_types=pool_types)
 
 
-def build_mobilenet_v3(num_classes, version, width_multiplier=1.0, cifar=False, use_lightweight_head=True,pool_types=None):
+def build_mobilenet_v3(num_classes, version, width_multiplier=1.0, cifar=False, use_lightweight_head=False,pool_types=None):
     """
     Construct a MobileNetV3 from the given set of parameters.
 
