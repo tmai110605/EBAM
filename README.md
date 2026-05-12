@@ -53,18 +53,6 @@ python EBamAttention_main.py --mobilenet v2 --dataset dogs --data-root D:/Dogs/d
 python EBamAttention_main.py --mobilenet v3 --mobilenet-v3 large --dataset dogs --data-root D:/Dogs/data
 ```
 
-### MobileNet V3 (small)
-
-```bash
-python EBamAttention_main.py --mobilenet v3 --mobilenet-v3 small --dataset dogs --data-root D:/Dogs/data
-```
-
-### MobileNet V3 with lightweight head
-
-```bash
-python EBamAttention_main.py --mobilenet v3 --mobilenet-v3 small --mobilenet-v3-lightweight-head --dataset dogs --data-root D:/Dogs/data
-```
-
 ## Common Options
 
 - `--gpu-id` : GPU index, set `-1` to use CPU.
