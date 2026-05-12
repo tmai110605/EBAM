@@ -4,7 +4,7 @@ Abstract - Bottleneck Attention Module (BAM) is one of the most popular attentio
 
 # EBam MobileNet Training
 
-This project trains MobileNet variants (V1/V2/V3) with DeptBAM attention.
+This project trains MobileNet variants (V1/V2/V3) with EBAM attention.
 
 ## Requirements
 
@@ -33,36 +33,36 @@ Set the dataset root with `--data-root`.
 
 ## Run Training
 
-Main entrypoint: `DeptBamAttention_main.py`
+Main entrypoint: `EBamAttention_main.py`
 
 ### MobileNet V1
 
 ```bash
-python DeptBamAttention_main.py --mobilenet v1 --dataset dogs --data-root D:/Dogs/data
+python EBamAttention_main.py --mobilenet v1 --dataset dogs --data-root D:/Dogs/data
 ```
 
 ### MobileNet V2
 
 ```bash
-python DeptBamAttention_main.py --mobilenet v2 --dataset dogs --data-root D:/Dogs/data
+python EBamAttention_main.py --mobilenet v2 --dataset dogs --data-root D:/Dogs/data
 ```
 
 ### MobileNet V3 (large)
 
 ```bash
-python DeptBamAttention_main.py --mobilenet v3 --mobilenet-v3 large --dataset dogs --data-root D:/Dogs/data
+python EBamAttention_main.py --mobilenet v3 --mobilenet-v3 large --dataset dogs --data-root D:/Dogs/data
 ```
 
 ### MobileNet V3 (small)
 
 ```bash
-python DeptBamAttention_main.py --mobilenet v3 --mobilenet-v3 small --dataset dogs --data-root D:/Dogs/data
+python EBamAttention_main.py --mobilenet v3 --mobilenet-v3 small --dataset dogs --data-root D:/Dogs/data
 ```
 
 ### MobileNet V3 with lightweight head
 
 ```bash
-python DeptBamAttention_main.py --mobilenet v3 --mobilenet-v3 small --mobilenet-v3-lightweight-head --dataset dogs --data-root D:/Dogs/data
+python EBamAttention_main.py --mobilenet v3 --mobilenet-v3 small --mobilenet-v3-lightweight-head --dataset dogs --data-root D:/Dogs/data
 ```
 
 ## Common Options
