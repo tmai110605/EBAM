@@ -19,7 +19,7 @@ import torch.utils.data
 
 import torchvision.transforms as transforms
 from torchvision import datasets
-from model.mobilenet_DeptBam import *
+from model.mobilenet_EBam import *
 from model.datasets import *
 import torch
 import torch.nn
@@ -210,7 +210,7 @@ def main():
     # print model with parameter and FLOPs counts
     torch.autograd.set_detect_anomaly(True)
 
-    strmode = args.dataset + '_DeptBAM_' + args.mobilenet
+    strmode = args.dataset + '_EBAM_' + args.mobilenet
     if args.mobilenet == 'v3':
         strmode += '_' + args.mobilenet_v3
         if args.mobilenet_v3_lightweight_head:
