@@ -70,7 +70,7 @@ def get_args():
     parser.add_argument('--mobilenet-v3-lightweight-head', action='store_true', help='Use lightweight head for MobileNetV3 when --mobilenet v3 is used.')
     parser.add_argument('-g', '--gpu-id', default=1, type=int, help='ID of the GPU to use. Set to -1 to use CPU.')
     parser.add_argument('-j', '--workers', default=4, type=int, help='Number of data loading workers.')
-    parser.add_argument('-b', '--batch-size', default=128, type=int, help='Batch size.')
+    parser.add_argument('-b', '--batch-size', default=32, type=int, help='Batch size.')
     parser.add_argument('-e', '--epochs', default=200, type=int, help='Number of total epochs to run.')
     parser.add_argument('-l', '--learning-rate', default=0.1, type=float, help='Initial learning rate.')
     parser.add_argument('-s', '--schedule', nargs='+', default=[100, 150, 180], type=int, help='Learning rate schedule (epochs after which the learning rate should be dropped).')
