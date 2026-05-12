@@ -25,7 +25,7 @@ class ChannelGate(nn.Module):
 
 
 
-class DeptSpatial(nn.Module):
+class DeptSaptial(nn.Module):
     def __init__(self, gate_channel, reduction_ratio=8):
         super().__init__()
         mid = gate_channel // reduction_ratio
@@ -43,11 +43,11 @@ class DeptSpatial(nn.Module):
     def forward(self, in_tensor):
         return self.gate_s(in_tensor)
 
-class DeptBAM(nn.Module):
+class EBAM(nn.Module):
     def __init__(self, gate_channel):
         super().__init__()
         self.channel_att = ChannelGate(gate_channel)
-        self.spatial_att = DeptSpatial(gate_channel)
+        self.spatial_att = DeptSaptial(gate_channel)
 
     def forward(self, x):
         logit = self.channel_att(x) * self.spatial_att(x)   
