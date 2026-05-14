@@ -59,18 +59,20 @@ def get_args():
     """
     parser = argparse.ArgumentParser(description='AVG3DNet training script for CIFAR and fine-grained datasets.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     #parser.add_argument('-r', '--data-root', type=str, required=True, help='Dataset root path.')
-    parser.add_argument('-r', '--data-root', type=str, default='data', help='Dataset root path.')
+    parser.add_argument('-r', '--data-root', type=str, default='.../data', help='Dataset root path.')
     #parser.add_argument('-d', '--dataset', choices=['cifar10', 'cifar100', 'dogs'], required=True, help='Dataset name.')
-    parser.add_argument('-d', '--dataset', type=str, choices=['cifar10', 'cifar100', 'dogs'], default='cifar100', help='Dataset name.')
+    parser.add_argument('-d', '--dataset', type=str, choices=['cifar10', 'cifar100', 'dogs'], default='dogs', help='Dataset name.')
     parser.add_argument('--download', action='store_true', help='Download the specified dataset before running the training.')
     #parser.add_argument('-a', '--architecture', type=str, required=True, help='Model architecture name.')
     parser.add_argument('-a', '--architecture', type=str, default='mobilenetv1_w1', help='Model architecture name.')
     parser.add_argument('--mobilenet', choices=['v1', 'v2', 'v3'], default='v2', help='Select MobileNet version.')
     parser.add_argument('--mobilenet-v3', choices=['small', 'large'], default='large', help='Select MobileNetV3 variant when --mobilenet v3 is used.')
     parser.add_argument('--mobilenet-v3-lightweight-head', action='store_true', help='Use lightweight head for MobileNetV3 when --mobilenet v3 is used.')
+    parser.add_argument('--evaluate', action='store_true', help='Load a checkpoint and run validation only.')
+    parser.add_argument('--checkpoint', type=str, default=None, help='Checkpoint path to load when --evaluate is set.')
     parser.add_argument('-g', '--gpu-id', default=1, type=int, help='ID of the GPU to use. Set to -1 to use CPU.')
     parser.add_argument('-j', '--workers', default=4, type=int, help='Number of data loading workers.')
-    parser.add_argument('-b', '--batch-size', default=32, type=int, help='Batch size.')
+    parser.add_argument('-b', '--batch-size', default=128, type=int, help='Batch size.')
     parser.add_argument('-e', '--epochs', default=200, type=int, help='Number of total epochs to run.')
     parser.add_argument('-l', '--learning-rate', default=0.1, type=float, help='Initial learning rate.')
     parser.add_argument('-s', '--schedule', nargs='+', default=[100, 150, 180], type=int, help='Learning rate schedule (epochs after which the learning rate should be dropped).')
@@ -191,8 +193,8 @@ def run_epoch(train, data_loader, model, criterion, optimizer, n_epoch, args, de
             loss.backward()
             optimizer.step()
 
-        #if (n_batch % 10) == 0:
-          #  print('[{}]  epoch {}/{},  batch {}/{},  loss_{}={:.5f},  acc_{}={:.2f}%'.format('train' if train else ' val ', n_epoch + 1, args.epochs, n_batch + 1, batch_count, "train" if train else "val", loss_item, "train" if train else "val", 100.0 * acc))
+        if (n_batch % 10) == 0:
+            print('[{}]  epoch {}/{},  batch {}/{},  loss_{}={:.5f},  acc_{}={:.2f}%'.format('train' if train else ' val ', n_epoch + 1, args.epochs, n_batch + 1, batch_count, "train" if train else "val", loss_item, "train" if train else "val", 100.0 * acc))
 
     return (sum(losses) / len(losses), sum(accs) / len(accs))
 
@@ -221,7 +223,7 @@ def main():
         os.makedirs(pathout)
     # get model
     if args.mobilenet == 'v1':
-        model = build_mobilenet_v1(100, width_multiplier=1.0, cifar=True)
+        model = build_mobilenet_v1(120, width_multiplier=1.0, cifar=False)
     elif args.mobilenet == 'v2':
         model = build_mobilenet_v2(120, width_multiplier=1.0, cifar=False)
     elif args.mobilenet == 'v3':
@@ -230,7 +232,7 @@ def main():
         raise ValueError('Unsupported MobileNet version: {}'.format(args.mobilenet))
     model = model.to(device)
 
-    #print(model)
+    print(model)
 
     print('Number of model parameters: {}'.format(
     sum([p.data.nelement() for p in model.parameters()])))
@@ -245,6 +247,27 @@ def main():
     # get train and val data loaders
     train_loader = get_data_loader(args=args, train=True)
     val_loader = get_data_loader(args=args, train=False)
+
+    if args.evaluate:
+        pathcheckpoint = args.checkpoint
+        if pathcheckpoint is None:
+            pathcheckpoint = os.path.join(pathout, 'model_best.pth')
+
+        if os.path.isfile(pathcheckpoint):
+            print("=> loading checkpoint '{}'".format(pathcheckpoint))
+            checkpoint = torch.load(pathcheckpoint, map_location=device)
+            model.load_state_dict(checkpoint['model_state_dict'])
+            del checkpoint
+        else:
+            print("=> no checkpoint found at '{}'".format(pathcheckpoint))
+            return
+
+        m = time.time()
+        loss_val, acc_val = run_epoch(train=False, data_loader=val_loader, model=model, criterion=criterion, optimizer=None, n_epoch=0, args=args, device=device)
+        print('[{}], loss_{}={:.5f},  acc_{}={:.2f}%'.format(' validating: ', 'val', loss_val, 'val', 100.0 * acc_val))
+        n = time.time()
+        print((n - m) / 3600)
+        return
 
     # for each epoch...
     acc_val_max = None
