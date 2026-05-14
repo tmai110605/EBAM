@@ -65,7 +65,7 @@ Pretrained Checkpoints:
 You can link to a pretrained checkpoint for MobileNet V2 on Stanford Dogs (example):
 
 ```text
-./checkpoints/dogs_EBAM_v2/checkpoint_epoch0158_62.57
+checkpoint_epoch0158_62.57.pth
 ```
 
 
