@@ -57,8 +57,8 @@ python EBamAttention_main.py --mobilenet v3 --mobilenet-v3 large --dataset dogs 
 Use `--evaluate` to run validation only from a saved checkpoint:
 
 ```bash
-# If checkpoint is in ./checkpoints/dogs_EBAM_v2/checkpoint_epoch0050_60.00.pth
-python EBamAttention_main.py --evaluate --mobilenet v2 --checkpoint ./checkpoints/dogs_EBAM_v2/checkpoint_epoch0050_60.00.pth
+# If checkpoint is in ./checkpoints/dogs_EBAM_v2/checkpoint_epoch0158_62.57
+python EBamAttention_main.py --evaluate --mobilenet v2 --checkpoint ./checkpoints/dogs_EBAM_v2/checkpoint_epoch0158_62.57
 ```
 Pretrained Checkpoints:
 
