@@ -60,7 +60,17 @@ Use `--evaluate` to run validation only from a saved checkpoint:
 # If checkpoint is in ./checkpoints/dogs_EBAM_v2/checkpoint_epoch0050_60.00.pth
 python EBamAttention_main.py --evaluate --mobilenet v2 --checkpoint ./checkpoints/dogs_EBAM_v2/checkpoint_epoch0050_60.00.pth
 ```
+Pretrained Checkpoints:
 
+You can link to a pretrained checkpoint for MobileNet V2 on Stanford Dogs (example):
+
+```text
+./checkpoints/dogs_EBAM_v2/checkpoint_epoch0050_92.50.pth
+```
+
+Place your checkpoint in the `./checkpoints/<run-name>/` folder and pass its path via `--checkpoint` when running `--evaluate`.
+
+Click here for the checkpoint folder and download instructions: [dogs_EBAM_v2 checkpoint](checkpoints/dogs_EBAM_v2/README.md)
 Notes:
 
 - Make sure `--dataset` and model options (`--mobilenet`, `--mobilenet-v3`) match the model used to create the checkpoint.
