@@ -70,7 +70,7 @@ You can link to a pretrained checkpoint for MobileNet V2 on Stanford Dogs (examp
 
 Place your checkpoint in the `./checkpoints/<run-name>/` folder and pass its path via `--checkpoint` when running `--evaluate`.
 
-Click here for the checkpoint folder and download instructions: [dogs_EBAM_v2 checkpoint](checkpoints/dogs_EBAM_v2/README.md)
+Click here for the checkpoint folder and download instructions: [dogs_EBAM_v2 checkpoint](https://drive.google.com/file/d/1G0HA3wt7Xf31So9ug8DPbTmMtxZ2X509/view?usp=drive_link)
 Notes:
 
 - Make sure `--dataset` and model options (`--mobilenet`, `--mobilenet-v3`) match the model used to create the checkpoint.
