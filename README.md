@@ -52,6 +52,20 @@ python EBamAttention_main.py --mobilenet v2 --dataset dogs --data-root D:/Dogs/d
 ```bash
 python EBamAttention_main.py --mobilenet v3 --mobilenet-v3 large --dataset dogs --data-root D:/Dogs/data
 ```
+### Run Evaluation From Checkpoint
+
+Use `--evaluate` to run validation only from a saved checkpoint:
+
+```bash
+# If checkpoint is in ./checkpoints/dogs_EBAM_v2/checkpoint_epoch0050_60.00.pth
+python EBamAttention_main.py --evaluate --mobilenet v2 --checkpoint ./checkpoints/dogs_EBAM_v2/checkpoint_epoch0050_60.00.pth
+```
+
+Notes:
+
+- Make sure `--dataset` and model options (`--mobilenet`, `--mobilenet-v3`) match the model used to create the checkpoint.
+- Set dataset location with `--data-root` if needed.
+- The script prints validation loss, validation accuracy, and total evaluation time.
 
 ## Common Options
 
